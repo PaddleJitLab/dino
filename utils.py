@@ -615,18 +615,13 @@ class MultiCropWrapper(nn.Module):
             torch.tensor([inp.shape[-1] for inp in x]),
             return_counts=True,
         )[1], 0)
-        start_idx, output = 0, torch.empty(0).to(x[0].device)
-        for end_idx in idx_crops:
-            _out = self.backbone(torch.cat(x[start_idx: end_idx]))
-            # The output is a tuple with XCiT model. See:
-            # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
-            if isinstance(_out, tuple):
-                _out = _out[0]
-            # accumulate outputs
-            output = torch.cat((output, _out))
-            start_idx = end_idx
+        _out = self.backbone(torch.cat(x))
+        # The output is a tuple with XCiT model. See:
+        # https://github.com/facebookresearch/xcit/blob/master/xcit.py#L404-L405
+        if isinstance(_out, tuple):
+            _out = _out[0]
         # Run the head forward on the concatenated features.
-        return self.head(output)
+        return self.head(_out)
 
 
 def get_params_groups(model):
